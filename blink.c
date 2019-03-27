@@ -9,21 +9,37 @@
 void led_init(unsigned int led)
 {
 	SET_BIT(RCC_BASE + RCC_AHB1ENR_OFFSET, GPIO_EN_BIT(GPIO_PORTD));
+	SET_BIT(RCC_BASE + RCC_AHB1ENR_OFFSET, GPIO_EN_BIT(GPIO_PORTA));
 
-	//MODER led pin = 01 => General purpose output mode
+	//MODER led pin = 01 => General purpose output mode D
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_MODER_OFFSET, MODERy_1_BIT(led));
 	SET_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_MODER_OFFSET, MODERy_0_BIT(led));
+
+	//MODER user button = 00 => General purpose input mode  A
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_MODER_OFFSET, MODERy_1_BIT(0));
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_MODER_OFFSET, MODERy_0_BIT(0));
 
 	//OT led pin = 0 => Output push-pull
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_OTYPER_OFFSET, OTy_BIT(led));
 
-	//OSPEEDR led pin = 00 => Low speed
+	//input push-pull
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_OTYPER_OFFSET, OTy_BIT(0));
+
+	//OSPEEDR led pin = 00 => Low speed D
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_1_BIT(led));
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_0_BIT(led));
+
+	//OSPEEDR led pin = 00 => Low speed A
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_1_BIT(0));
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_OSPEEDR_OFFSET, OSPEEDRy_0_BIT(0));
 
 	//PUPDR led pin = 00 => No pull-up, pull-down
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_PUPDR_OFFSET, PUPDRy_1_BIT(led));
 	CLEAR_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_PUPDR_OFFSET, PUPDRy_0_BIT(led));
+
+	//PUPDR led pin = 00 => No pull-up, pull-down A
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_PUPDR_OFFSET, PUPDRy_1_BIT(0));
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_PUPDR_OFFSET, PUPDRy_0_BIT(0));
 }
 
 /**
@@ -34,22 +50,30 @@ void led_init(unsigned int led)
 void blink(unsigned int led)
 {
 	led_init(led);
-
 	unsigned int i;
-
-	while (1)
+	int a;
+	while(1)
 	{
-		//set GPIOD led pin
-		SET_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_BSRR_OFFSET, BSy_BIT(led));
-
-		for (i = 0; i < 100000; i++)
-			;
-
-		//reset GPIOD led pin
-		SET_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_BSRR_OFFSET, BRy_BIT(led));
-
-		for (i = 0; i < 100000; i++)
-			;
+		a=READ_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_IDR_OFFSET,IDRy_BIT(0));
+		if(a)
+		{
+			while (1)
+			{
+				//set GPIOD led pin
+				SET_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_BSRR_OFFSET, BSy_BIT(led));
+		
+				for (i = 0; i < 100000; i++)
+					;
+		
+				//reset GPIOD led pin
+				SET_BIT(GPIO_BASE(GPIO_PORTD) + GPIOx_BSRR_OFFSET, BRy_BIT(led));
+			
+				for (i = 0; i < 100000; i++)
+					;
+			}
+		}
+		else 
+		;
 	}
 }
 

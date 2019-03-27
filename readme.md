@@ -1,47 +1,48 @@
-HW04
+HW03
 ===
-This is the hw04 sample. Please follow the steps below.
+#1.實驗題目
 
-# Build the Sample Program
+修改reg.h標頭檔裡面的macro function,並建立read_bit讀取STM3207F4的input
+修改blink.c,使在reset後按下user_button藍色LED才閃爍
 
-1. Fork this repo to your own github account.
+#2.實驗步驟
 
-2. Clone the repo that you just forked.
+*1.打開reg.h,依據上課講義與使用者手冊,建立新的macro function,包含rcc,ldr reg等相關函式
+*2.查閱手冊後,發現user button所使用到的位置是PA0
+*3.建立read_bit函式,其方法為addr與uint_1"<<"bits進行and,透過這個方法可以過濾掉其他沒有要用的input
+```
+	#define READ_BIT(addr, bit)  (REG(addr) &= UINT32_1 << (bit)) 
+	#define GPIOx_IDR_OFFSET 0x10
+	#define IDRy_BIT(y) (y)
+```
+*3.打開blink.c檔，按照上課講義與使用者手冊,先以rcc初始化PortA,再以reg設定PA的型態,使之成為input
+```
+	SET_BIT(RCC_BASE + RCC_AHB1ENR_OFFSET, GPIO_EN_BIT(GPIO_PORTA));
 
-3. Under the hw04 dir, use:
+	//MODER user button = 00 => General purpose input mode  A
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_MODER_OFFSET, MODERy_1_BIT(0));
+	CLEAR_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_MODER_OFFSET, MODERy_0_BIT(0));
 
-	* `make` to build.
+```
 
-	* `make flash` to flash the binary file into your STM32F4 device.
+*4.在main裡面加上進入`while`的條件,並在外圍再加上一個`while`以確保按按鈕之前不會結束程式
+```
+	int a;
+		while(1)
+		{
+			a=READ_BIT(GPIO_BASE(GPIO_PORTA) + GPIOx_IDR_OFFSET,IDRy_BIT(0));
+			if(a)
+			{ ......（blink）
+```
 
-	* `make clean` to clean the ouput files.
+* 5.為`STM3207F4`上電,在作業資料夾內打開終端機,依序輸入`make clean`,`make`,`make flash`,並看是否有完成題目要求
 
-# Build Your Own Program
+# 3.結果與討論
+* 1.本次我學到的教訓是只要漏掉一個步驟，例如忘記初始化,按鈕就是一個沒有用的東西
 
-1. Edit or add files if you need to.
 
-2. Make and run like the steps above.
-
-3. Please avoid using hardware dependent C standard library functions like `printf`, `malloc`, etc.
-
-# HW04 Requirements
-
-1. Please practice to reference the user manuals mentioned in [Lecture 04], and try to use the user button (the blue one on the STM32F4DISCOVERY board).
-
-2. After reset, the device starts to wait until the user button has been pressed, and then starts to blink the blue led forever.
-
-3. Try to define a macro function `READ_BIT(addr, bit)` in reg.h for reading the value of the user button.
-
-4. Push your repo to your github. (Use .gitignore to exclude the output files like object files, executable files, or binary files)
-
-5. The TAs will clone your repo, build from your source code, and flash to see the result.
-
-[Lecture 04]: http://www.nc.es.ncku.edu.tw/course/embedded/04/
+- [] **If you volunteer to give the presentation next week, check this.**
 
 --------------------
 
-- [x] **If you volunteer to give the presentation (demo) next week, check this.**
-
---------------------
-
-Take your note here if you want. (Optional)
+**★★★ Please take your note here ★★★**
